@@ -1,19 +1,15 @@
-from rest_framework import filters
 import pandas as pd
-from rest_framework.generics import ListAPIView
-from rest_framework import status
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.response import Response
 from django.db import IntegrityError
-from django.db.models import Sum, Count
-from django.db.models import F
+from django.db.models import Count, F, Sum
+from django_filters import rest_framework as filters
+from rest_framework import status
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from .serializers import UploadSerializer, BillsSerializer, ClientsSerializer
-from .models import (FileUpload,
-                     Bill,
-                     Client,
-                     ClientOrg)
-from .services import detector, classificator
+from .models import Bill, Client, ClientOrg, FileUpload
+from .serializers import BillsSerializer, ClientsSerializer, UploadSerializer
+from .services import classificator, detector
 
 
 class UploadBillViewSet(ModelViewSet):
@@ -117,5 +113,5 @@ class InfoViewSet(ModelViewSet):
 class BillsListView(ListAPIView):
     queryset = Bill.objects.all()
     serializer_class = BillsSerializer
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['name', 'org']
+    filter_backends = [filters.DjangoFilterBackend, ]
+    filterset_fields = ('name', 'org')
