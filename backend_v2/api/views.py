@@ -106,7 +106,7 @@ class UploadClientOrgViewSet(ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class BillsViewSet(ModelViewSet):
+class InfoViewSet(ModelViewSet):
     queryset = Bill.objects.all()
     serializer_class = BillsSerializerShow
 
@@ -116,3 +116,12 @@ class BillsViewSet(ModelViewSet):
         return [Bill.objects.annotate(
             orgcount=Count('numberorg'),
             sumclcount=Sum('sumcl').filter(name=client.name)) for client in clients]
+
+
+class BillsViewSet(ModelViewSet):
+    queryset = Bill.objects.all()
+    serializer_class = BillsSerializer
+
+    def get_queryset(self):
+        clients = Client.objects.all()
+        pass
