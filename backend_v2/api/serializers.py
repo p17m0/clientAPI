@@ -37,15 +37,14 @@ class BillsSerializer(serializers.ModelSerializer):
         ]
 
 
-class BillsSerializerShow(serializers.ModelSerializer):
-    orgcount = serializers.IntegerField()
-    sumclcount = serializers.IntegerField()
-    
+class ClientsSerializer(serializers.ModelSerializer):
+    # orgcount = IntegerField()
+    cnt_org = serializers.IntegerField(read_only=True)
+    income = serializers.IntegerField(read_only=True)
     class Meta:
         """Contains model & fields used by this serializer."""
 
-        model = Bill
-        fields = [
-            'name', 'orgcount', 'sumclcount',
-        ]
+        model = Client
+        # fields = '__all__'
+        fields = ('name', 'cnt_org', 'income')
 

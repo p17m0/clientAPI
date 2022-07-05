@@ -31,12 +31,18 @@ class ClientOrg(models.Model):
 
     fraud_weight = models.IntegerField(blank=True, null=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['address', 'org'],
+                                    name='unique_address')]
+
 
 class Bill(models.Model):
     name = models.ForeignKey(Client,
                              on_delete=models.CASCADE, related_name='bills')
     org = models.ForeignKey(ClientOrg,
-                            on_delete=models.CASCADE)
+                            on_delete=models.CASCADE,
+                            )
     numberorg = models.IntegerField()
     sumcl = models.IntegerField()
     date = models.DateField()
@@ -47,5 +53,5 @@ class Bill(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['name', 'numberorg'],
+            models.UniqueConstraint(fields=['numberorg', 'org'],
                                     name='unique_number')]

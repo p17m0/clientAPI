@@ -5,9 +5,21 @@ NO REDOC
 В проекте есть 4 эндпоинта:
 
 
--- "http://127.0.0.1:8000/api/v1/upload_bills/",
--- "http://127.0.0.1:8000/api/v1/upload_client_org/",
--- "http://127.0.0.1:8000/api/v1/bills/"
+```
+"http://127.0.0.1:8000/api/v1/upload_bills/"
+```
+
+```
+"http://127.0.0.1:8000/api/v1/upload_client_org/"
+```
+
+```
+"http://127.0.0.1:8000/api/v1/client_info/"
+```
+
+```
+"http://127.0.0.1:8000/api/v1/bills/"
+```
 
 
 ### Как запустить проект:

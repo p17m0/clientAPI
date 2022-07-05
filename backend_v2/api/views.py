@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.db import IntegrityError
 from django.db.models import Sum, Count
 
-from .serializers import UploadSerializer, BillsSerializer, BillsSerializerShow
+from .serializers import UploadSerializer, BillsSerializer, ClientsSerializer
 from .models import (FileUpload,
                      Bill,
                      Client,
@@ -31,9 +31,9 @@ class UploadBillViewSet(ModelViewSet):
             xl = pd.read_excel(data)
             columns = list(xl.columns.values)
 
-            name, org, number, sum, date, service = (columns[0], columns[1],
-                                                     columns[2], columns[3],
-                                                     columns[4], columns[5])
+            name, org, numberorg, sumcl, date, service = (columns[0], columns[1],
+                                                          columns[2], columns[3],
+                                                          columns[4], columns[5])
 
             instances = []
             for _, row in xl.iterrows():
@@ -42,11 +42,11 @@ class UploadBillViewSet(ModelViewSet):
                 instances.append(
                 Bill(name=Client.objects.filter(name=row[name]).get(),
                 org=ClientOrg.objects.filter(org=row[org]).get(),
-                number=row[number],
-                sum=row[sum],
+                numberorg=row[numberorg],
+                sumcl=row[sumcl],
                 date=row[date],
                 service=row[service],
-                fraud_score = fraud_score + 1 if fraud_score >= 0.9 else fraud_score,
+                fraud_score = fraud_score,
                 service_class=service_class,
                 service_name=service_name))
             
@@ -108,15 +108,8 @@ class UploadClientOrgViewSet(ModelViewSet):
 
 
 class InfoViewSet(ModelViewSet):
-    queryset = Bill.objects.all()
-    serializer_class = BillsSerializerShow
-
-    def get_queryset(self):
-        clients = Client.objects.all()
-        print(clients)
-        return [Bill.objects.annotate(
-            orgcount=Count('numberorg'),
-            sumclcount=Sum('sumcl').filter(name=client.name)) for client in clients]
+    queryset = Client.objects.annotate(cnt_org=Count('orgs'), income=Sum('bills__sumcl'))
+    serializer_class = ClientsSerializer
 
 
 class BillsListView(ListAPIView):
