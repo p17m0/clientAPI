@@ -9,6 +9,7 @@ from .models import (FileUpload,
                      Bill,
                      Client,
                      ClientOrg)
+from .services import detector, classificator
 
 
 class UploadBillViewSet(ModelViewSet):
@@ -27,17 +28,23 @@ class UploadBillViewSet(ModelViewSet):
             xl = pd.read_excel(data)
             columns = list(xl.columns.values)
 
-            name, org, numer, sum, date, service = (columns[0], columns[1],
-                                                    columns[2], columns[3],
-                                                    columns[4], columns[5])
+            name, org, number, sum, date, service = (columns[0], columns[1],
+                                                     columns[2], columns[3],
+                                                     columns[4], columns[5])
+            service_class, service_name = classificator()
+
             instances = [
                 Bill(
-                    name=row[name],
-                    org=row[org],
-                    numer=row[numer],
+                    name=Client.objects.filter(name=row[name]).get(),
+                    org=ClientOrg.objects.filter(org=row[org]).get(),
+                    number=row[number],
                     sum=row[sum],
                     date=row[date],
-                    service=row[service],)
+                    service=row[service],
+                    fraud_score=detector(service),
+                    service_class=service_class,
+                    service_name=service_name,
+                    )
                 for index, row in xl.iterrows()
                     ]
             Bill.objects.bulk_create(instances)
@@ -82,14 +89,10 @@ class UploadClientOrgViewSet(ModelViewSet):
                 Client.objects.bulk_create(instances_cl)
             except IntegrityError:
                 print("error")
-            print('--------')
-            print(namecl)
-            print('--------')
-            print(Client.objects.get(name=namecl))
             instances_org = [
-                ClientOrg(name=row[Client.objects.filter(name=namecl).get()],
-                           org=row[org],
-                           address=f'Адрес: {row[address]}',)
+                ClientOrg(name=Client.objects.filter(name=row[namecl]).get(),
+                          org=row[org],
+                          address=f'Адрес: {row[address]}',)
                 for index, row in xl_org.iterrows()
                     ]
 
@@ -102,11 +105,11 @@ class UploadClientOrgViewSet(ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# class ListClient(viewsets.ModelViewSet):
-#     serializer_class = BillsSerializer
+class ListClient(viewsets.ModelViewSet):
+    serializer_class = BillsSerializer
 
-#     def get_queryset(self):
-#         title_id = self.kwargs.get('title_id')
-#         title = get_object_or_404(Title, pk=title_id)
-#         new_queryset = title.reviews.all()
-#         return new_queryset
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        new_queryset = title.reviews.all()
+        return new_queryset
