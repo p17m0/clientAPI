@@ -1,3 +1,4 @@
+from rest_framework import filters
 import pandas as pd
 from rest_framework.generics import ListAPIView
 from rest_framework import status
@@ -118,10 +119,8 @@ class InfoViewSet(ModelViewSet):
             sumclcount=Sum('sumcl').filter(name=client.name)) for client in clients]
 
 
-class BillsViewSet(ModelViewSet):
+class BillsListView(ListAPIView):
     queryset = Bill.objects.all()
     serializer_class = BillsSerializer
-
-    def get_queryset(self):
-        clients = Client.objects.all()
-        pass
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['name', 'org']
