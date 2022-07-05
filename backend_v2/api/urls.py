@@ -5,6 +5,7 @@ from .views import *
 router = routers.DefaultRouter()
 router.register('upload_bills', UploadBillViewSet)
 router.register('upload_client_org', UploadClientOrgViewSet)
+router.register('bills', BillViewSet, basename='bills')
 
 # Wire up our API using automatic URL routing.
 urlpatterns = [

@@ -37,10 +37,15 @@ class Bill(models.Model):
                              on_delete=models.CASCADE, related_name='bills')
     org = models.ForeignKey(ClientOrg,
                             on_delete=models.CASCADE)
-    number = models.CharField(max_length=20, unique=True)
+    number = models.IntegerField()
     sum = models.IntegerField()
     date = models.DateField()
     service = models.CharField(max_length=20)
     fraud_score = models.IntegerField()
     service_class = models.IntegerField()
     service_name = models.CharField(max_length=20)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'number'],
+                                    name='unique_number')]

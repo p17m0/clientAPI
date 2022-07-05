@@ -1,4 +1,5 @@
 import pandas as pd
+from django.db.models import Avg
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -71,8 +72,7 @@ class UploadClientOrgViewSet(ModelViewSet):
             data = request.data.get('file')
 
             xl_clients = pd.read_excel(data, sheet_name='client')
-            xl_org = pd.read_excel(data, sheet_name='organization',
-                                   skiprows=[0])
+            xl_org = pd.read_excel(data, sheet_name='organization',)
 
             columns_clients = list(xl_clients.columns.values)
             columns_org = list(xl_org.columns.values)
@@ -105,11 +105,12 @@ class UploadClientOrgViewSet(ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ListClient(viewsets.ModelViewSet):
+class BillViewSet(ModelViewSet):
+    queryset = Bill.objects.annotate(rating=Avg('sum'))
     serializer_class = BillsSerializer
 
-    def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        new_queryset = title.reviews.all()
-        return new_queryset
+    def get_serializer_class(self):
+        if self.action in ('retrieve', 'list'):
+            return BillsSerializer
+        return BillsSerializer
+
