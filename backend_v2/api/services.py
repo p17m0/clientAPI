@@ -1,12 +1,13 @@
-from random import randint
+import random
+
 
 def detector(service):
-    fraud_score = randint(0, 1)
+    fraud_score = round(random.random(), 1)
     return fraud_score
 
 
-def classificator():
-    service_class = randint(1, 5)
+def classificator(service):
+    service_class = random.randint(1, 5)
 
     services = {1: 'консультация',
                 2: 'лечение',

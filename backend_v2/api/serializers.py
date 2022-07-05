@@ -28,5 +28,24 @@ class BillsSerializer(serializers.ModelSerializer):
     class Meta:
         """Contains model & fields used by this serializer."""
 
-        model = FileUpload
-        fields = '__all__'
+        model = Bill
+        fields = [
+            'numberorg', 'date',
+            'service', 'fraud_score',
+            'service_class', 'service_name',
+            'name', 'org', 'sumcl',
+        ]
+
+
+class BillsSerializerShow(serializers.ModelSerializer):
+    orgcount = serializers.IntegerField()
+    sumclcount = serializers.IntegerField()
+    
+    class Meta:
+        """Contains model & fields used by this serializer."""
+
+        model = Bill
+        fields = [
+            'name', 'orgcount', 'sumclcount',
+        ]
+

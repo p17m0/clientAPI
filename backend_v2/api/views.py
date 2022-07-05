@@ -1,11 +1,12 @@
 import pandas as pd
-from django.db.models import Avg
+from rest_framework.generics import ListAPIView
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from django.db import IntegrityError
+from django.db.models import Sum, Count
 
-from .serializers import UploadSerializer, BillsSerializer
+from .serializers import UploadSerializer, BillsSerializer, BillsSerializerShow
 from .models import (FileUpload,
                      Bill,
                      Client,
@@ -32,22 +33,22 @@ class UploadBillViewSet(ModelViewSet):
             name, org, number, sum, date, service = (columns[0], columns[1],
                                                      columns[2], columns[3],
                                                      columns[4], columns[5])
-            service_class, service_name = classificator()
 
-            instances = [
-                Bill(
-                    name=Client.objects.filter(name=row[name]).get(),
-                    org=ClientOrg.objects.filter(org=row[org]).get(),
-                    number=row[number],
-                    sum=row[sum],
-                    date=row[date],
-                    service=row[service],
-                    fraud_score=detector(service),
-                    service_class=service_class,
-                    service_name=service_name,
-                    )
-                for index, row in xl.iterrows()
-                    ]
+            instances = []
+            for _, row in xl.iterrows():
+                service_class, service_name = classificator(service)
+                fraud_score=detector(service)
+                instances.append(
+                Bill(name=Client.objects.filter(name=row[name]).get(),
+                org=ClientOrg.objects.filter(org=row[org]).get(),
+                number=row[number],
+                sum=row[sum],
+                date=row[date],
+                service=row[service],
+                fraud_score = fraud_score + 1 if fraud_score >= 0.9 else fraud_score,
+                service_class=service_class,
+                service_name=service_name))
+            
             Bill.objects.bulk_create(instances)
 
             self.perform_create(serializer)
@@ -105,12 +106,20 @@ class UploadClientOrgViewSet(ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class BillViewSet(ModelViewSet):
-    queryset = Bill.objects.annotate(rating=Avg('sum'))
-    serializer_class = BillsSerializer
+class BillsViewSet(ModelViewSet):
+    queryset = Bill.objects.all()
+    serializer_class = BillsSerializerShow
 
-    def get_serializer_class(self):
-        if self.action in ('retrieve', 'list'):
-            return BillsSerializer
-        return BillsSerializer
+    def get_queryset(self):
+        return Bill.objects.annotate(
+            orgcount=Count('numberorg'),
+            sumclcount=Sum('sumcl'))
 
+    # def list(self, request):
+    #     # Note the use of `get_queryset()` instead of `self.queryset`
+    #     queryset = Bill.objects.all()
+    #     # 'number', 'date',
+    #     # service', 'fraud_score',
+    #     # 'service_class', 'service_name'
+    #     serializer = BillsSerializerShow(queryset)
+    #     return Response(serializer.data)
