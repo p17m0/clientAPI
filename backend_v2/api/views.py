@@ -111,15 +111,8 @@ class BillsViewSet(ModelViewSet):
     serializer_class = BillsSerializerShow
 
     def get_queryset(self):
-        return Bill.objects.annotate(
+        clients = Client.objects.all()
+        print(clients)
+        return [Bill.objects.annotate(
             orgcount=Count('numberorg'),
-            sumclcount=Sum('sumcl'))
-
-    # def list(self, request):
-    #     # Note the use of `get_queryset()` instead of `self.queryset`
-    #     queryset = Bill.objects.all()
-    #     # 'number', 'date',
-    #     # service', 'fraud_score',
-    #     # 'service_class', 'service_name'
-    #     serializer = BillsSerializerShow(queryset)
-    #     return Response(serializer.data)
+            sumclcount=Sum('sumcl').filter(name=client.name)) for client in clients]
