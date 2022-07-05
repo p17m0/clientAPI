@@ -29,7 +29,7 @@ class ClientOrg(models.Model):
                                unique=True,
                                max_length=20)
 
-    fraud_weight = models.IntegerField(blank=True, null=True)
+    fraud_weight = models.IntegerField(default=0)
 
     class Meta:
         constraints = [

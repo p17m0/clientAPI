@@ -6,6 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from django.db import IntegrityError
 from django.db.models import Sum, Count
+from django.db.models import F
 
 from .serializers import UploadSerializer, BillsSerializer, ClientsSerializer
 from .models import (FileUpload,
@@ -39,6 +40,9 @@ class UploadBillViewSet(ModelViewSet):
             for _, row in xl.iterrows():
                 service_class, service_name = classificator(service)
                 fraud_score=detector(service)
+                org_obj = ClientOrg.objects.filter(org=row[org])
+                if fraud_score >= 0.9:
+                    org_obj.update(fraud_weight=F('fraud_weight') + 1)
                 instances.append(
                 Bill(name=Client.objects.filter(name=row[name]).get(),
                 org=ClientOrg.objects.filter(org=row[org]).get(),
@@ -46,12 +50,10 @@ class UploadBillViewSet(ModelViewSet):
                 sumcl=row[sumcl],
                 date=row[date],
                 service=row[service],
-                fraud_score = fraud_score,
+                fraud_score=fraud_score,
                 service_class=service_class,
                 service_name=service_name))
-            
             Bill.objects.bulk_create(instances)
-
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED,
